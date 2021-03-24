@@ -1,0 +1,14 @@
+
+:root {
+    --bg: #000;
+    --fg: #fff;
+}
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+}
+
+canvas#spectrum {
+    border: 1px solid var(--fg);
+}

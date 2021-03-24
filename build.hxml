@@ -1,0 +1,6 @@
+-js web/player.js
+-main Player
+-cp src
+-lib om.core
+-dce full
+-debug
