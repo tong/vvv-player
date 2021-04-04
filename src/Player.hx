@@ -4,6 +4,7 @@ import js.Browser.console;
 import js.Browser.document;
 import js.Browser.window;
 import js.html.AudioElement;
+import js.html.VideoElement;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 import js.html.audio.AnalyserNode;
@@ -20,8 +21,6 @@ typedef Config = {
 
 class Player {
 
-    //static var host = "http://157.90.162.214:8000";
-
     static var config(default,null) : Config;
 
     public static var mount(default,null) : String;
@@ -36,10 +35,26 @@ class Player {
     static var graphics : CanvasRenderingContext2D;
 
     @:expose("Player.init")
-    static function init( cfg : Config ) : Promise<Dynamic> {
-        trace("Player init");
-        Player.config = cfg;
-        return fetchStats(); //.then( stats -> trace(stats) );
+    static function init( config : Config ) : Promise<Dynamic> {
+        trace( "Player init " +config );
+        Player.config = config;
+        return fetchStats().then( stats -> {
+
+            audio = document.createAudioElement();
+            audio.preload = "none";
+            audio.crossOrigin = "anonymous";
+            audio.controls = false;
+            audio.autoplay = true;
+    
+            sourceElement = document.createSourceElement();
+            audio.appendChild( sourceElement );
+
+            canvas = cast document.getElementById("spectrum");
+            graphics = canvas.getContext("2d");
+            animationFrameId = window.requestAnimationFrame( update );
+
+            return stats;
+        });
     }
 
     @:expose("Player.fetchStats")
@@ -51,30 +66,19 @@ class Player {
     }
 
     @:expose("Player.play")
-    static function play( mount : String ) {
+    static function play( source : Dynamic ) {
 
-        trace("Play: "+mount );
+        trace("Player.play",source);
 
-        Player.mount = mount;
-        
-        var url = 'http://${config.host}:${config.port}';
+        if( audio != null ) {
+            audio.pause();
+        }
 
-        if( audio == null ) {
+        sourceElement.type = source.server_type;
+        sourceElement.src = source.listenurl;
 
-            audio = document.createAudioElement();
-            audio.preload = "none";
-            audio.crossOrigin = "anonymous";
-            audio.controls = false;
+        if( analyser == null ) {
 
-    
-            sourceElement = document.createSourceElement();
-            sourceElement.type = 'application/ogg';
-            sourceElement.src = '$url/$mount';
-            audio.appendChild( sourceElement );
-            
-            audio.load();
-            audio.play();
-    
             var audioContext = new AudioContext();
             if( audioContext == null ) audioContext = js.Syntax.code( 'new window.webkitAudioContext()' );
             analyser = audioContext.createAnalyser();
@@ -86,12 +90,10 @@ class Player {
     
             var source = audioContext.createMediaElementSource( audio );
             source.connect( analyser );
-
-        } else {
-            sourceElement.src = '$url/$mount';
-            audio.load();
-            audio.play();
         }
+
+        audio.load();
+        audio.play();
     }
 
     @:expose("Player.pause")
@@ -137,14 +139,5 @@ class Player {
             //graphics.lineTo( w, centerY);
             graphics.stroke();
         }
-    }
-
-    static function main() {
-        console.info("VVV");
-        window.addEventListener( 'load', e -> {
-            canvas = cast document.getElementById("spectrum");
-            graphics = canvas.getContext("2d");
-            animationFrameId = window.requestAnimationFrame( update );
-        });
     }
 }

@@ -1,5 +1,5 @@
 -js web/player.js
--main Player
+Player
 -cp src
 -lib om.core
 -dce full

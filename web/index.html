@@ -6,41 +6,39 @@
         <title>VVV</title>
         <link rel="stylesheet" href="player.css">
         <script src="player.js"></script>
-        <script>
-            Player.init({
-                host : "157.90.162.214",
-                port : 8000,
-            }).then( stats => {
-                console.log(stats);
-                var controls = document.getElementById('controls');
-                stats.source.forEach( source => {
-                    console.log(source);
-                    var e = document.createElement("div");
-                    e.textContent =  source.listenurl;
-                    e.setAttribute('onclick','Player.play("vvv1")');
-                    controls.append(e);
-                });
-            })
-        </script>
     </head>
     <body>
-
         <canvas id="spectrum" width="400" height="400"></canvas>
-
-        <div id="controls">
-            <button onclick="Player.play('vvv1')">VVV1</button>
-            <button onclick="Player.play('vvv2')">VVV2</button>
-            <button onclick="Player.play('vvv3')">VVV3</button>
-            <button onclick="Player.play('vvv4')">VVV4</button>
-            <button onclick="Player.play('vvv5')">VVV5</button>
-            <button onclick="Player.play('vvv6')">VVV6</button>
-            <button onclick="Player.play('vvv7')">VVV7</button>
-            <button onclick="Player.play('vvv8')">VVV8</button>
-            <button onclick="Player.play('vvv9')">VVV9</button>
-            <button onclick="Player.play('vvv10')">VVV10</button>
-            <button onclick="Player.play('vvv11')">VVV11</button>
-            <button onclick="Player.pause()">PAUSE</button>
-        </div>
-
+        <div id="controls"></div>
+        <script>
+            window.onload = e => {
+ 
+                const controls = document.getElementById('controls');
+ 
+                function addSource( source ) {
+                    var e = document.createElement("button");
+                    e.textContent =  source.listenurl;
+                    e.onclick = e => {
+                        Player.play( source );
+                    }
+                    controls.append(e);
+                }
+ 
+                Player.init( { host : "157.90.162.214", port : 8000, } ).then( stats => {
+                    console.log(stats);
+                    if(stats.source) {
+                        if( Array.isArray(stats.source) ) {
+                            stats.source.forEach( source => {
+                                addSource( source );
+                            });
+                        } else {
+                            addSource( stats.source );
+                        }
+                    }
+                }).catch(e =>  {
+                    console.error(e);
+                });
+            }
+         </script>
     </body>
 </html>
